@@ -67,9 +67,29 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Crea un proyecto.
 		pub fn crear_proyecto(origen: OriginFor<T>, nombre: String) -> DispatchResult {
-			// Completar este método.
-			todo!()
+			let quien = ensure_signed(origen)?;
+
+			ensure!(
+				nombre.len() >= T::LargoMinimoNombreProyecto::get() as usize,
+				Error::<T>::NombreMuyCorto
+			);
+
+			ensure!(
+				nombre.len() <= T::LargoMaximoNombreProyecto::get() as usize,
+				Error::<T>::NombreMuyLargo
+			);
+
+			let nombre: NombreProyecto<T> = nombre.try_into().unwrap();
+
+			let balance = BalanceDe::<T>::from(0u32);
+			
+			Proyectos::<T>::insert(nombre.clone(), balance);
+		
+			Self::deposit_event(Event::ProyectoCreado { quien, nombre });
+
+			Ok(())
 		}
+
 
 		pub fn apoyar_proyecto(
 			origen: OriginFor<T>,
