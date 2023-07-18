@@ -96,8 +96,24 @@ pub mod pallet {
 			nombre: String,
 			cantidad: BalanceDe<T>,
 		) -> DispatchResult {
-			// Completar este método.
-			todo!()
+			let id = ensure_signed(origen)?;
+
+			let nombre: NombreProyecto<T> = nombre.clone().try_into().unwrap();
+		
+			ensure!(Proyectos::<T>::contains_key(&nombre), Error::<T>::ProyectoNoExiste);
+
+			let saldo = T::Currency::free_balance(&id);
+			ensure!(saldo >= cantidad, Error::<T>::FondosInsuficientes);
+
+			let saldo = Proyectos::<T>::get(&nombre);
+			let nuevo_saldo = saldo + cantidad;
+			Proyectos::<T>::insert(&nombre, nuevo_saldo);
+
+			T::Currency::withdraw(&id, cantidad, frame_support::traits::WithdrawReasons::TRANSFER, frame_support::traits::ExistenceRequirement::KeepAlive)?;
+
+			Self::deposit_event(Event::ProyectoApoyado { nombre, cantidad });
+			
+			Ok(())
 		}
 	}
 }
